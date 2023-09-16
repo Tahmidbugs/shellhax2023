@@ -131,8 +131,10 @@ const HomeSeeker: React.FC = () => {
     setToken(newToken);
     const urlParams = new URLSearchParams(window.location.search);
     const sessionCode = urlParams.get("code");
-
-    if (sessionCode && !newToken) {
+    
+   
+    
+    if (sessionCode && (!newToken || newToken==="undefined")) {
       axios
         .get(`http://127.0.0.1:5000/api/auth?code=${sessionCode}`)
         .then((response) => {
@@ -141,9 +143,9 @@ const HomeSeeker: React.FC = () => {
           const { data } = response;
           console.log(data);
           localStorage.setItem("TOKEN", data.access_token);
-        //   const newUrl = "http://127.0.0.1:3000/seekerhome"; // client url
-        //   window.location.href = newUrl;
-        //   window.location.reload();
+          const newUrl = "http://127.0.0.1:3000/seekerhome"; // client url
+          window.location.href = newUrl;
+          window.location.reload();
         })
         .catch((error) => {
           //token revoked

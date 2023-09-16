@@ -1,6 +1,7 @@
 import { PdfReader } from "pdfreader";
 import fetch from "node-fetch";
 
+
 function ensureJson(variable) {
     if (typeof variable === 'string') {
         try {
@@ -17,6 +18,7 @@ function ensureJson(variable) {
         return null;
     }
 }
+
 
 
 const extractPdfText = (filePath) => {
