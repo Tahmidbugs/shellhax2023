@@ -2,6 +2,7 @@ import React from "react";
 import { FC } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 
 const MyNavbar: React.FC = () => {
   const location = useLocation();
@@ -122,11 +123,11 @@ const Auth: FC = () => {
         <p style={{ textAlign: "center" }}>
           We're going to now talk to the GitHub API. Ready? to begin!
         </p>
-        {/* <button
-          ref={`https://github.com/login/oauth/authorize?scope=user:email&client_id=${process.env.CLIENT_ID}`}
+        <Button
+          href={`https://github.com/login/oauth/authorize?scope=user:email&client_id=295ff29b3700c941fbd6`} //hardcode
         >
           Login
-        </button> */}
+        </Button>
         <p>
           This site uses Github's public API which has a user limit of 60 API
           calls for unauthorized users. Having logged in provides an auth token

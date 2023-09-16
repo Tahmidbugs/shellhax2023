@@ -7,7 +7,6 @@ import "./HomeComp.css";
 import { useLocation, Link } from "react-router-dom";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
 
-
 type User = {
   login: string;
   id: number;
@@ -123,7 +122,7 @@ const MyNavbar: React.FC = () => {
   );
 };
 
-const HomeComponent: React.FC = () => {
+const HomeSeeker: React.FC = () => {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("TOKEN")
   );
@@ -133,23 +132,27 @@ const HomeComponent: React.FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const sessionCode = urlParams.get("code");
 
-    if (sessionCode && localStorage.getItem("TOKEN") === null) {
+    if (sessionCode && !newToken) {
       axios
         .get(`http://127.0.0.1:5000/api/auth?code=${sessionCode}`)
         .then((response) => {
           // Extract the access token
-
+          
           const { data } = response;
+          console.log(data);
           localStorage.setItem("TOKEN", data.access_token);
-          const newUrl = "http://127.0.0.1:3000"; // client url
-          window.location.href = newUrl;
-          window.location.reload();
+        //   const newUrl = "http://127.0.0.1:3000/seekerhome"; // client url
+        //   window.location.href = newUrl;
+        //   window.location.reload();
         })
         .catch((error) => {
           //token revoked
           localStorage.removeItem("TOKEN");
           console.error("Error:", error);
         });
+    }else{
+        console.log("not called");
+        
     }
   }, [token]);
 
@@ -171,7 +174,7 @@ const HomeComponent: React.FC = () => {
       setLoading(true);
       await axios
         .post("http://127.0.0.1:5000/api/" + username, {
-          token: localStorage.getItem("TOKEN") || "",
+          token: localStorage.getItem("token") || "",
         })
         .then((res) => {
           if (localStorage.getItem("data")) {
@@ -224,7 +227,7 @@ const HomeComponent: React.FC = () => {
         >
           <img src="/25231.png" alt="" height={"250px"} />
           <h1 style={{ textAlign: "center" }}>
-            Best place for students and recruiters
+            Search for referrer
           </h1>
           <p style={{ textAlign: "center" }}>
             Enter your GitHub Username to find people who might refer you.
@@ -260,34 +263,7 @@ const HomeComponent: React.FC = () => {
 
             {token == null || token === "undefined" ? (
               <>
-                <Button
-                  onClick={() => {
-                    navigate("/auth");
-                  }}
-                  variant="dark"
-                  style={{
-                    width: "200px",
-                    display: "block",
-                    margin: "auto",
-                    marginTop: "10px",
-                  }}
-                >
-                  Login as job seeker
-                </Button>
-                <Button
-                  onClick={() => {
-                    navigate("/recauth");
-                  }}
-                  variant="dark"
-                  style={{
-                    width: "200px",
-                    display: "block",
-                    margin: "auto",
-                    marginTop: "10px",
-                  }}
-                >
-                  Login as recruiter
-                </Button>
+              clear cache  and login
               </>
             ) : !Loading ? (
               <button
@@ -338,4 +314,4 @@ const HomeComponent: React.FC = () => {
   );
 };
 
-export default HomeComponent;
+export default HomeSeeker;

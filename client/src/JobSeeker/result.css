@@ -1,0 +1,18 @@
+.SinglePersonCard {
+  font-weight: bold;
+  width: 300px;
+
+  @media (max-width: 767px) {
+    font-weight: bold;
+    width: 200px;
+  }
+}
+
+
+.CompleteListDiv{
+    display: flex;
+    width: 100vw;
+    @media (max-width: 767px) {
+        overflow: scroll;
+  }
+}
