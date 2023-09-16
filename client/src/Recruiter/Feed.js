@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { db } from "../firebase.js";
 import "./feed.css";
 import animationData from "../assets/Lotties/notfound.json";
-import Lottie from "react-lottie";
+
 
 const Feed = ({ setModalVisible, modalVisible, setJobDetails }) => {
   const [jobTitle, setJobTitle] = useState("");
@@ -113,7 +113,6 @@ const Feed = ({ setModalVisible, modalVisible, setJobDetails }) => {
                 marginTop: "5rem",
               }}
             >
-              <Lottie options={defaultOptions} height={250} width={300} />
               <h2>
                 You haven't added a job yet.{" "}
                 <span
