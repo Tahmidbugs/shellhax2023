@@ -1,6 +1,9 @@
 import { PdfReader } from "pdfreader";
 import fetch from "node-fetch";
+import dotenv from 'dotenv'
+dotenv.config({path: './client/.env'});
 
+const API_KEY = process.env.API_KEY;
 
 function ensureJson(variable) {
     if (typeof variable === 'string') {
