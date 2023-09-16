@@ -131,8 +131,10 @@ const HomeSeeker: React.FC = () => {
     setToken(newToken);
     const urlParams = new URLSearchParams(window.location.search);
     const sessionCode = urlParams.get("code");
-
-    if (sessionCode && !newToken) {
+    
+   
+    
+    if (sessionCode && (!newToken || newToken==="undefined")) {
       axios
         .get(`http://127.0.0.1:5000/api/auth?code=${sessionCode}`)
         .then((response) => {
