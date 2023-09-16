@@ -1,6 +1,6 @@
 import { PdfReader } from "pdfreader";
 import fetch from "node-fetch";
-const API_KEY = "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";
+const API_KEY = "";
 
 const extractPdfText = (filePath) => {
     return new Promise(async (resolve, reject) => {
