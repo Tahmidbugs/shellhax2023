@@ -8,6 +8,7 @@ import RecLogin from "./JobSeeker/login.tsx";
 import "bootstrap/dist/css/bootstrap.css";
 import HomeSeeker from "./JobSeeker/Homeseeker.tsx";
 import Result from "./JobSeeker/result.tsx";
+import RIndex from "./Recruiter/RIndex.js";
 
 const router = createBrowserRouter([
   {
@@ -34,44 +35,9 @@ const router = createBrowserRouter([
     path: "/result",
     element: <Result />,
   },
-]);
-
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />
-);
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import HomeComponent from "./JobSeeker/Home.tsx";
-import Auth from "./JobSeeker/auth.tsx";
-import Recauth from "./JobSeeker/recauth.tsx";
-import RecLogin from "./JobSeeker/login.tsx";
-import "bootstrap/dist/css/bootstrap.css";
-import HomeSeeker from "./JobSeeker/Homeseeker.tsx";
-import Result from "./JobSeeker/result.tsx";
-
-const router = createBrowserRouter([
   {
-    path: "/",
-    element: <HomeComponent />,
-  },
-  {
-    path: "/seekerhome",
-    element: <HomeSeeker />,
-  },
-  {
-    path: "/auth",
-    element: <Auth />,
-  },
-  {
-    path: "/recauth",
-    element: <Recauth />,
-  },
-  {
-    path: "/login",
-    element: <RecLogin />,
-  },
-  {
-    path: "/result",
-    element: <Result />,
+    path: "/rec",
+    element: <RIndex />,
   },
 ]);
 

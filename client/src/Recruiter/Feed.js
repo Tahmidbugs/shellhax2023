@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
+import { db } from "../firebase.js";
 import "./feed.css";
 import animationData from "../assets/Lotties/notfound.json";
 import Lottie from "react-lottie";

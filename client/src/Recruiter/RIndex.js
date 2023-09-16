@@ -1,9 +1,9 @@
 import React from "react";
-import Feed from "./Feed";
+import Feed from "./Feed.js";
 import "./feed.css";
 import Logo from "../assets/logo.png";
 import "./feed.css";
-import Job from "./Job";
+import Job from "./Job.js";
 
 function RIndex(props) {
   const [modalVisible, setModalVisible] = React.useState(false);
