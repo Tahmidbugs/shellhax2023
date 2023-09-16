@@ -143,9 +143,9 @@ const HomeSeeker: React.FC = () => {
           const { data } = response;
           console.log(data);
           localStorage.setItem("TOKEN", data.access_token);
-        //   const newUrl = "http://127.0.0.1:3000/seekerhome"; // client url
-        //   window.location.href = newUrl;
-        //   window.location.reload();
+          const newUrl = "http://127.0.0.1:3000/seekerhome"; // client url
+          window.location.href = newUrl;
+          window.location.reload();
         })
         .catch((error) => {
           //token revoked

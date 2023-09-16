@@ -31,6 +31,9 @@ def getToken():
         "client_secret": os.getenv("CLIENT_SECRET"),
         "code": session_code
     }
+    print(os.getenv("CLIENT_ID"))
+    print(os.getenv("CLIENT_SECRET"))
+    
 
     print(params)
     print(session_code)
