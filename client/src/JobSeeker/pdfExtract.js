@@ -1,6 +1,5 @@
 import { PdfReader } from "pdfreader";
 import fetch from "node-fetch";
-const API_KEY = "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";
 
 function ensureJson(variable) {
     if (typeof variable === 'string') {
