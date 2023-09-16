@@ -1,6 +1,25 @@
 import { PdfReader } from "pdfreader";
 import fetch from "node-fetch";
-const API_KEY = "";
+
+
+function ensureJson(variable) {
+    if (typeof variable === 'string') {
+        try {
+            return JSON.parse(variable);
+        } catch (error) {
+            // If parsing fails, return the original value
+            return variable;
+        }
+    } else if (typeof variable === 'object') {
+        // If it's already an object, return it as is
+        return variable;
+    } else {
+        // For other data types, return null or handle as needed
+        return null;
+    }
+}
+
+
 
 const extractPdfText = (filePath) => {
     return new Promise(async (resolve, reject) => {
@@ -33,7 +52,7 @@ const processExtractedText = async (text) => {
         },
         body: JSON.stringify({
             model: "gpt-3.5-turbo",
-            messages: [{ role: 'system', content: 'You are a job recruiter that extracts important information from a resume regarding skills, projects, experience, certifications etc.' }, { role: "user", content:`extract all important information such as experience, projects, certifications, skills etc. as a paragraph from my perspective for a recruiter in first person as I am writing it from this resume${text}`}],
+            messages: [{ role: 'system', content: 'You are a job recruiter that extracts important information from a resume regarding skills, projects, experience, certifications etc.' }, { role: "user", content:`Analyse the subsequent resume data and make an elevator pitch in first person to a working professional whom you would like to give you a referral. Also extract all the technical skills from the resume. Only return the output as JSON code and the elevator pitch under message, and the skills as a list under skills. Resume: ${text}`}],
             temperature: 0.7,
             max_tokens: 600
         })
@@ -41,7 +60,8 @@ const processExtractedText = async (text) => {
     try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', options);
         const data = await response.json();
-        console.log(data.choices[0].message.content);
+        //console.log(data.choices[0].message.content);
+        return ensureJson(data.choices[0].message.content);
     } catch (error) {
         console.error('Error extracting text from PDF:', error);
         throw error;
@@ -54,11 +74,12 @@ const filePath = "C:/Users/abhin/OneDrive/Desktop/Projects/shellhax2023/client/s
 (async () => {
     try {
         const extractedText = await extractPdfText(filePath);
-        console.log("PDF text extracted successfully:");
-        console.log(extractedText);
+        //console.log("PDF text extracted successfully:");
+        //console.log(extractedText);
 
         // Pass the extracted text to the processExtractedText function
-        await processExtractedText(extractedText);
+        const jsonoutput = await processExtractedText(extractedText);
+        //console.log(jsonoutput);
     } catch (error) {
         console.error("Error extracting PDF text:", error);
     }
