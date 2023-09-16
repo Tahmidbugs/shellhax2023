@@ -1,23 +1,20 @@
-import "./App.css";
+// import ReactDOM from "react-dom/client";
+// import "./index.css";
+// import { createBrowserRouter, RouterProvider } from "react-router-dom";
+// import HomeComponent from "./JobSeeker/Home.tsx";
+// import Auth from "./JobSeeker/auth.tsx";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+// const router = createBrowserRouter([
+//   {
+//     path: "/",
+//     element: <HomeComponent />,
+//   },
+//   {
+//     path: "/auth",
+//     element: <Auth />,
+//   },
+// ]);
 
-export default App;
+// ReactDOM.createRoot(document.getElementById("root")).render(
+//   <RouterProvider router={router} />
+// );
