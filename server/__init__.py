@@ -2,6 +2,7 @@ import os
 from flask import Flask,request
 from buildgraph import func
 from flask_cors import CORS
+import PyPDF2
 import requests
 import json
 
@@ -21,6 +22,25 @@ def getGraph(user):
     token = request.json.get('token')
     return func(user,token)
 
+
+@app.route('/api/upload/', methods=['POST'])
+def upload_pdf():
+    uploaded_file = request.files['pdfFile']
+
+    print(uploaded_file)
+
+    if not uploaded_file:
+        return 'No file uploaded.'
+
+    pdf_text = []
+    pdf = PyPDF2.PdfReader(uploaded_file)
+    for page_num in range(len(pdf.pages)):
+        page = pdf.pages[page_num]
+        pdf_text.append(page.extract_text())
+    
+    return ''.join(pdf_text)
+
+
 #end point to get Authentication token for API call
 @app.route('/api/auth', methods=['GET'])
 def getToken():
@@ -33,7 +53,7 @@ def getToken():
     }
     print(os.getenv("CLIENT_ID"))
     print(os.getenv("CLIENT_SECRET"))
-    
+
 
     print(params)
     print(session_code)
