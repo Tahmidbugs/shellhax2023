@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { Bars, ThreeDots } from "react-loading-icons";
 import { useState } from "react";
 import "./result.css";
+import { BarChart } from "./BarChart.tsx";
 
 function Feed(props) {
   const [token, setToken] = React.useState(localStorage.getItem("TOKEN"));
@@ -20,6 +21,7 @@ function Feed(props) {
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [viewReferrals, setViewReferrals] = React.useState(false);
+  const [matchList, setMatchList] = React.useState();
 
   const navigate = useNavigate();
 
@@ -171,7 +173,7 @@ function Feed(props) {
   return (
     <div>
       <Navbar />
-      <div className="feed" style={{ marginLeft: 30 }}>
+      <div className="feed" style={{ marginLeft: 30, marginBottom: 100 }}>
         {userName === "" ? (
           <h3>Fetching your username</h3>
         ) : (
@@ -273,6 +275,7 @@ function Feed(props) {
             )}
           </div>
         )}
+
         {!viewReferrals && (
           <div
             className="get-referrals"
@@ -307,7 +310,7 @@ function Feed(props) {
           >
             {loading && <ThreeDots stroke="#1a1a1a" fill="#1a1a1a" />}
           </div>
-          {viewReferrals && <Results />}
+          {viewReferrals && <Results userData={userData} />}
         </div>
       </div>
 
@@ -469,7 +472,7 @@ const imageBaseStyle = {
   transition: "transform 0.3s ease",
 };
 
-const ListComponent = ({ items }) => {
+const ListComponent = ({ items, userData }) => {
   const [clicked, setClick] = useState(false);
 
   const handleMouseEnter = (e) => {
@@ -482,6 +485,18 @@ const ListComponent = ({ items }) => {
 
   const handleClick = () => {
     setClick((clicked) => !clicked);
+  };
+
+  const handleWriteEmail = async (item) => {
+    const emailBody = await axios.post("http://localhost:5000/api/email", {
+      token: localStorage.getItem("TOKEN") || "",
+      user: item,
+      userData: userData,
+    });
+    console.log(emailBody);
+    // Write email
+
+    window.location.href = `mailto:${item.email}?subject=Referral%20Request&body=${emailBody.data}`;
   };
 
   return clicked ? (
@@ -499,48 +514,76 @@ const ListComponent = ({ items }) => {
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-evenly",
               alignItems: "center",
-              width: 300,
-              height: 300,
-              backgroundColor: "#3B383D",
-              color: "white",
+              justifyContent: "center",
             }}
           >
-            <img
-              src={item?.avatar_url}
-              style={imageBaseStyle}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              onClick={handleClick}
-              alt=""
-            />
-            <div style={{ textAlign: "center", width: "200px" }}>
-              <div>{item.login}</div>
-              <div>{item.name}</div>
-              <div>{item.location}</div>
-              {item.company && (
-                <div style={{ fontWeight: "bold" }}>{item.company}</div>
-              )}
-            </div>
-          </div>
-          {index !== items.length - 1 && (
-            <img
-              src="/arrow-right-solid.svg"
-              alt=""
-              width={"150px"}
-              height={"50px"}
+            <div
               style={{
-                margin: "auto",
-                marginRight: "20px",
-                cursor: "pointer",
-                transition: "transform 0.3s ease",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-evenly",
+                alignItems: "center",
+                width: 300,
+                height: 300,
+                backgroundColor: "#3B383D",
+                color: "white",
+                borderRadius: 20,
               }}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-            />
-          )}
+            >
+              <img
+                src={item?.avatar_url}
+                style={imageBaseStyle}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                onClick={handleClick}
+                alt=""
+              />
+              <div style={{ textAlign: "center", width: "200px" }}>
+                <div>{item.login}</div>
+                <div>{item.name}</div>
+                <div>{item.location}</div>
+                {item.company && (
+                  <div style={{ fontWeight: "bold" }}>{item.company}</div>
+                )}
+              </div>
+            </div>
+            {index !== items.length - 1 && (
+              <img
+                src="/arrow-right-solid.svg"
+                alt=""
+                width={"150px"}
+                height={"50px"}
+                style={{
+                  margin: "auto",
+                  marginRight: "20px",
+                  cursor: "pointer",
+                  transition: "transform 0.3s ease",
+                }}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              />
+            )}
+          </div>
+          <div>
+            {index === items.length - 1 && (
+              <button
+                style={{
+                  backgroundColor: "#1a1a1a",
+                  color: "white",
+                  height: "30px",
+                  borderRadius: "20px",
+                }}
+                onClick={() => {
+                  handleWriteEmail(item);
+                }}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+              >
+                Write an email
+              </button>
+            )}
+          </div>
         </div>
       ))}
     </div>
@@ -575,13 +618,33 @@ const ListComponent = ({ items }) => {
     </div>
   );
 };
-const Results = () => {
+const Results = ({ userData }) => {
   const item = JSON.parse(localStorage.getItem("data") || "{}");
   const typedData = item.companypaths;
+  const labels = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+  ];
 
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: "Dataset 1",
+        data: [65, 59, 80, 81, 56, 55, 40],
+        backgroundColor: "rgba(255, 99, 132, 0.5)",
+      },
+    ],
+  };
   const navigate = useNavigate();
   return (
     <div style={{ marginBottom: 100 }}>
+      <BarChart data={data} />
       <div className="feed" style={{ marginBottom: 100 }}>
         {typedData && typedData.length !== 0 ? (
           <div>
@@ -628,7 +691,11 @@ const Results = () => {
             }}
             key={index}
           >
-            <ListComponent items={list} key={index}></ListComponent>
+            <ListComponent
+              items={list}
+              key={index}
+              userData={userData}
+            ></ListComponent>
           </div>
         ))}
       </div>
