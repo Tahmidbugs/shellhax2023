@@ -10,6 +10,7 @@ import HomeSeeker from "./JobSeeker/Homeseeker.tsx";
 import Result from "./JobSeeker/result.tsx";
 import Landing from "./JobSeeker/Landing.js";
 import Feed from "./JobSeeker/Feed.js";
+import { LoadGraphWithHook } from "./JobSeeker/Graph.tsx";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: "/result",
     element: <Result />,
+  },
+  {
+    path: "/visualize",
+    element: <LoadGraphWithHook />,
   },
 ]);
 
