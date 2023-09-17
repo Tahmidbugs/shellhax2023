@@ -8,7 +8,6 @@ import { useNavigate } from "react-router-dom";
 import { Bars, ThreeDots } from "react-loading-icons";
 import { useState } from "react";
 import "./result.css";
-import { BarChart } from "./BarChart.tsx";
 
 function Feed(props) {
   const [token, setToken] = React.useState(localStorage.getItem("TOKEN"));
@@ -21,7 +20,6 @@ function Feed(props) {
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [viewReferrals, setViewReferrals] = React.useState(false);
-  const [matchList, setMatchList] = React.useState();
 
   const navigate = useNavigate();
 
@@ -144,6 +142,78 @@ function Feed(props) {
     else if (localStorage.getItem("data")) {
       setLoading(false);
       setViewReferrals(true);
+      const item = JSON.parse(localStorage.getItem("data") || "{}");
+      const companylist = item.companypaths;
+      const token = localStorage.getItem("TOKEN");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`, // Set the Authorization header with the token
+        },
+      };
+
+      const people_name = [];
+      companylist.forEach((list) => {
+        people_name.push(list[list.length - 1].login);
+      });
+
+      // user name list
+      var minn = 10;
+      for (const user of people_name) {
+        try {
+          const res = await axios.get(
+            `https://api.github.com/users/${user}/repos`,
+            config
+          );
+          // console.log(res);
+          const size = res.data.length;
+          if (size < minn) {
+            minn = size;
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      // console.log(minn);
+      const hashmap = {}; // map<string,[JSON Object]>
+      for (const user of people_name) {
+        try {
+          const res = await axios.get(
+            `https://api.github.com/users/${user}/repos`,
+            config
+          );
+
+          const newlist = res.data.slice(0, minn);
+          for (const repo of newlist) {
+            try {
+              //for each repo
+              const repoName = repo.name;
+              const languagesRes = await axios.get(
+                `https://api.github.com/repos/${user}/${repoName}/languages`
+              );
+
+              // langres ={"java":4656,"js":3244}
+              // [{reponame:"xde",["py"]}]
+              if (!hashmap[user]) {
+                // If the user key doesn't exist, create it as an empty array
+                hashmap[user] = [];
+              }
+
+              hashmap[user].push({
+                repoName,
+                languages: Object.keys(languagesRes.data),
+              });
+              // newlist.push({ repoName, languagesRes });
+            } catch (error) {
+              console.log(error);
+            }
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      console.log(hashmap);
+
       return;
     } else {
       await axios
@@ -156,6 +226,18 @@ function Feed(props) {
             localStorage.removeItem("data");
           }
           localStorage.setItem("data", JSON.stringify(res.data));
+          console.log("here");
+
+          const item = JSON.parse(localStorage.getItem("data") || "{}");
+          const companylist = item.companypaths;
+
+          const people_name = [];
+          companylist.forEach((list) => {
+            people_name.push(list[list.length - 1].login);
+          });
+
+          console.log(companylist);
+
           setLoading(false);
           setViewReferrals(true);
         })
@@ -173,7 +255,7 @@ function Feed(props) {
   return (
     <div>
       <Navbar />
-      <div className="feed" style={{ marginLeft: 30, marginBottom: 100 }}>
+      <div className="feed" style={{ marginLeft: 30 }}>
         {userName === "" ? (
           <h3>Fetching your username</h3>
         ) : (
@@ -275,7 +357,6 @@ function Feed(props) {
             )}
           </div>
         )}
-
         {!viewReferrals && (
           <div
             className="get-referrals"
@@ -310,7 +391,7 @@ function Feed(props) {
           >
             {loading && <ThreeDots stroke="#1a1a1a" fill="#1a1a1a" />}
           </div>
-          {viewReferrals && <Results userData={userData} />}
+          {viewReferrals && <Results />}
         </div>
       </div>
 
@@ -472,7 +553,7 @@ const imageBaseStyle = {
   transition: "transform 0.3s ease",
 };
 
-const ListComponent = ({ items, userData }) => {
+const ListComponent = ({ items }) => {
   const [clicked, setClick] = useState(false);
 
   const handleMouseEnter = (e) => {
@@ -485,18 +566,6 @@ const ListComponent = ({ items, userData }) => {
 
   const handleClick = () => {
     setClick((clicked) => !clicked);
-  };
-
-  const handleWriteEmail = async (item) => {
-    const emailBody = await axios.post("http://localhost:5000/api/email", {
-      token: localStorage.getItem("TOKEN") || "",
-      user: item,
-      userData: userData,
-    });
-    console.log(emailBody);
-    // Write email
-
-    window.location.href = `mailto:${item.email}?subject=Referral%20Request&body=${emailBody.data}`;
   };
 
   return clicked ? (
@@ -514,76 +583,48 @@ const ListComponent = ({ items, userData }) => {
           <div
             style={{
               display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-evenly",
               alignItems: "center",
-              justifyContent: "center",
+              width: 300,
+              height: 300,
+              backgroundColor: "#3B383D",
+              color: "white",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                width: 300,
-                height: 300,
-                backgroundColor: "#3B383D",
-                color: "white",
-                borderRadius: 20,
-              }}
-            >
-              <img
-                src={item?.avatar_url}
-                style={imageBaseStyle}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-                onClick={handleClick}
-                alt=""
-              />
-              <div style={{ textAlign: "center", width: "200px" }}>
-                <div>{item.login}</div>
-                <div>{item.name}</div>
-                <div>{item.location}</div>
-                {item.company && (
-                  <div style={{ fontWeight: "bold" }}>{item.company}</div>
-                )}
-              </div>
+            <img
+              src={item?.avatar_url}
+              style={imageBaseStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              onClick={handleClick}
+              alt=""
+            />
+            <div style={{ textAlign: "center", width: "200px" }}>
+              <div>{item.login}</div>
+              <div>{item.name}</div>
+              <div>{item.location}</div>
+              {item.company && (
+                <div style={{ fontWeight: "bold" }}>{item.company}</div>
+              )}
             </div>
-            {index !== items.length - 1 && (
-              <img
-                src="/arrow-right-solid.svg"
-                alt=""
-                width={"150px"}
-                height={"50px"}
-                style={{
-                  margin: "auto",
-                  marginRight: "20px",
-                  cursor: "pointer",
-                  transition: "transform 0.3s ease",
-                }}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-              />
-            )}
           </div>
-          <div>
-            {index === items.length - 1 && (
-              <button
-                style={{
-                  backgroundColor: "#1a1a1a",
-                  color: "white",
-                  height: "30px",
-                  borderRadius: "20px",
-                }}
-                onClick={() => {
-                  handleWriteEmail(item);
-                }}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-              >
-                Write an email
-              </button>
-            )}
-          </div>
+          {index !== items.length - 1 && (
+            <img
+              src="/arrow-right-solid.svg"
+              alt=""
+              width={"150px"}
+              height={"50px"}
+              style={{
+                margin: "auto",
+                marginRight: "20px",
+                cursor: "pointer",
+                transition: "transform 0.3s ease",
+              }}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            />
+          )}
         </div>
       ))}
     </div>
@@ -618,33 +659,13 @@ const ListComponent = ({ items, userData }) => {
     </div>
   );
 };
-const Results = ({ userData }) => {
+const Results = () => {
   const item = JSON.parse(localStorage.getItem("data") || "{}");
   const typedData = item.companypaths;
-  const labels = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-  ];
 
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: "Dataset 1",
-        data: [65, 59, 80, 81, 56, 55, 40],
-        backgroundColor: "rgba(255, 99, 132, 0.5)",
-      },
-    ],
-  };
   const navigate = useNavigate();
   return (
     <div style={{ marginBottom: 100 }}>
-      <BarChart data={data} />
       <div className="feed" style={{ marginBottom: 100 }}>
         {typedData && typedData.length !== 0 ? (
           <div>
@@ -691,11 +712,7 @@ const Results = ({ userData }) => {
             }}
             key={index}
           >
-            <ListComponent
-              items={list}
-              key={index}
-              userData={userData}
-            ></ListComponent>
+            <ListComponent items={list} key={index}></ListComponent>
           </div>
         ))}
       </div>
