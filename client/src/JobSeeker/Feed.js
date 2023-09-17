@@ -9,6 +9,8 @@ import { Bars, ThreeDots } from "react-loading-icons";
 import { useState } from "react";
 import "./result.css";
 
+const API_KEY = "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";
+
 function Feed(props) {
   const [token, setToken] = React.useState(localStorage.getItem("TOKEN"));
   const [userName, setUserName] = React.useState("");
@@ -129,6 +131,53 @@ function Feed(props) {
       .update({ elevatorPitch: userData?.elevatorPitch });
   };
 
+  const processExtractedText = async (textmap) => {
+    console.log("Checking");
+    //userData.elevatorPitch
+    //userData.username
+    // Rest of your code for processing the extracted text here
+    for (const name in textmap) {
+      if (textmap.hasOwnProperty(name)) {
+        const value = textmap[name];
+  
+        const options = {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are a job recruiter that extracts important information from a resume regarding skills, projects, experience, certifications etc.",
+              },
+              {
+                role: "user",
+                content: `Analyse the my subsequent elevator pitch and the details of the person who's referral I am about to ask, and tailor my elevator pitch which needs to be written in first person to him so that it increases my probability of getting his/her referral. Also give me a score between 0 to 1, where 0 is the lowest and 1 the highest of how much my profile matches with that of the person. Only return the output as JSON code and the elevator pitch under message, and the score under score. Elevator pitch: ${userData.elevatorPitch} , Person's information ${value}. The person's data contains all the repositiories he has worked in and the languages he used in each. The name of the person is ${name}`,
+              },
+            ],
+            temperature: 0.7,
+            max_tokens: 600,
+          }),
+        };
+        try {
+          const response = await fetch(
+            "https://api.openai.com/v1/chat/completions",
+            options
+          );
+          const data = await response.json();
+          console.log(data.choices[0].message.content);
+          //return ensureJson(data.choices[0].message.content);
+        } catch (error) {
+          console.error("Error extracting text from PDF:", error);
+          throw error;
+        }
+      }
+    } 
+  };
   const handleFindClick = async (e) => {
     e.preventDefault();
     if (userName === "") {
@@ -138,8 +187,7 @@ function Feed(props) {
         setError("");
       }, 2000);
     }
-    // if in localstorage just return
-    else if (localStorage.getItem("data")) {
+    else if (localStorage.getItem("data") && localStorage.getItem("hashmap")) {
       setLoading(false);
       setViewReferrals(true);
       const item = JSON.parse(localStorage.getItem("data") || "{}");
@@ -220,23 +268,83 @@ function Feed(props) {
         .post("http://127.0.0.1:5000/api/" + userName, {
           token: localStorage.getItem("TOKEN") || "",
         })
-        .then((res) => {
+        .then(async (res) => {
           if (localStorage.getItem("data")) {
             // Remove the item from local storage
             localStorage.removeItem("data");
           }
           localStorage.setItem("data", JSON.stringify(res.data));
-          console.log("here");
-
           const item = JSON.parse(localStorage.getItem("data") || "{}");
-          const companylist = item.companypaths;
+      const companylist = item.companypaths;
+      const token = localStorage.getItem("TOKEN");
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`, // Set the Authorization header with the token
+        },
+      };
 
-          const people_name = [];
-          companylist.forEach((list) => {
-            people_name.push(list[list.length - 1].login);
-          });
+      const people_name = [];
+      companylist.forEach((list) => {
+        people_name.push(list[list.length - 1].login);
+      });
 
-          console.log(companylist);
+      // user name list
+      var minn = 10;
+      for (const user of people_name) {
+        try {
+          const res = await axios.get(
+            `https://api.github.com/users/${user}/repos`,
+            config
+          );
+          // console.log(res);
+          const size = res.data.length;
+          if (size < minn) {
+            minn = size;
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      // console.log(minn);
+      const hashmap = {}; // map<string,[JSON Object]>
+      for (const user of people_name) {
+        try {
+          const res = await axios.get(
+            `https://api.github.com/users/${user}/repos`,
+            config
+          );
+
+          const newlist = res.data.slice(0, minn);
+          for (const repo of newlist) {
+            try {
+              //for each repo
+              const repoName = repo.name;
+              const languagesRes = await axios.get(
+                `https://api.github.com/repos/${user}/${repoName}/languages`
+              );
+
+              // langres ={"java":4656,"js":3244}
+              // [{reponame:"xde",["py"]}]
+              if (!hashmap[user]) {
+                // If the user key doesn't exist, create it as an empty array
+                hashmap[user] = [];
+              }
+
+              hashmap[user].push({
+                repoName,
+                languages: Object.keys(languagesRes.data),
+              });
+              // newlist.push({ repoName, languagesRes });
+            } catch (error) {
+              console.log(error);
+            }
+          }
+        } catch (error) {
+          console.log(error);
+              }      }
+              processExtractedText(hashmap)
+      console.log(hashmap);
 
           setLoading(false);
           setViewReferrals(true);
