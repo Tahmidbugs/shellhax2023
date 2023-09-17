@@ -8,16 +8,17 @@ import RecLogin from "./JobSeeker/login.tsx";
 import "bootstrap/dist/css/bootstrap.css";
 import HomeSeeker from "./JobSeeker/Homeseeker.tsx";
 import Result from "./JobSeeker/result.tsx";
-import RIndex from "./Recruiter/RIndex.js";
+import Landing from "./JobSeeker/Landing.js";
+import Feed from "./JobSeeker/Feed.js";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomeComponent />,
+    element: <Landing />,
   },
   {
     path: "/seekerhome",
-    element: <HomeSeeker />,
+    element: <Feed />,
   },
   {
     path: "/auth",
@@ -34,10 +35,6 @@ const router = createBrowserRouter([
   {
     path: "/result",
     element: <Result />,
-  },
-  {
-    path: "/rec",
-    element: <RIndex />,
   },
 ]);
 
