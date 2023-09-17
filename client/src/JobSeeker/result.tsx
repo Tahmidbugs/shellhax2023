@@ -1,7 +1,18 @@
-import React,{ FC, useState } from "react";
+import React, { FC, useState } from "react";
 import "./result.css";
 import { useLocation, Link } from "react-router-dom";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Legend,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Legend);
 
 type User = {
   login: string;
@@ -220,6 +231,32 @@ const MyNavbar: React.FC = () => {
   );
 };
 
+export const options = {
+  responsive: true,
+  plugins: {
+    legend: {
+      position: "top" as const,
+    },
+    title: {
+      display: false,
+      text: "Chart.js Bar Chart",
+    },
+  },
+};
+
+const labels = ["Abhi", "Akbar", "Umar", "khan", "otobek"];
+
+export const data = {
+  labels,
+  datasets: [
+    {
+      label: "Closest match",
+      data: [1, 2, 3, 4, 1],
+      backgroundColor: "rgba(251, 10, 62, 0.5)",
+    },
+  ],
+};
+
 const Result: FC = () => {
   const item = JSON.parse(localStorage.getItem("data") || "{}");
   const typedData: Data = item.companypaths;
@@ -228,6 +265,10 @@ const Result: FC = () => {
       style={{ background: "lightblue", height: "100%", minHeight: "100vh" }}
     >
       <MyNavbar />
+      <div style={{ height: "500px", width: "500px" }}>
+        <Bar options={options} data={data} />
+      </div>
+
       <div style={{ padding: "20px" }}>
         {typedData && typedData.length !== 0 ? (
           <h1>Your top Referrals:</h1>
