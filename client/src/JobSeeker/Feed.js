@@ -5,6 +5,9 @@ import Logo from "../assets/logo.png";
 import { db } from "../firebase.js";
 import { processExtractedText } from "./pdfExtract.js";
 import { useNavigate } from "react-router-dom";
+import { Bars, ThreeDots } from "react-loading-icons";
+import { useState } from "react";
+import "./result.css";
 
 function Feed(props) {
   const [token, setToken] = React.useState(localStorage.getItem("TOKEN"));
@@ -16,6 +19,7 @@ function Feed(props) {
   const [elevatorPitch, setElevatorPitch] = React.useState("");
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [viewReferrals, setViewReferrals] = React.useState(false);
 
   const navigate = useNavigate();
 
@@ -133,8 +137,13 @@ function Feed(props) {
       setTimeout(() => {
         setError("");
       }, 2000);
+    }
+    // if in localstorage just return
+    else if (localStorage.getItem("data")) {
+      setLoading(false);
+      setViewReferrals(true);
+      return;
     } else {
-      setLoading(true);
       await axios
         .post("http://127.0.0.1:5000/api/" + userName, {
           token: localStorage.getItem("TOKEN") || "",
@@ -146,7 +155,7 @@ function Feed(props) {
           }
           localStorage.setItem("data", JSON.stringify(res.data));
           setLoading(false);
-          navigate("/result");
+          setViewReferrals(true);
         })
         .catch((err) => {
           console.log(err);
@@ -185,11 +194,11 @@ function Feed(props) {
                 <h4
                   style={{
                     fontWeight: "bold",
-                    fontSize: "1.5em",
+                    fontSize: "1.0em",
                     color: "#333",
                   }}
                 >
-                  Elevator Pitch
+                  Here is an elevator pitch tailored from your resume
                 </h4>
                 <div>
                   <textarea
@@ -210,7 +219,7 @@ function Feed(props) {
                     backgroundColor: "#1a1a1a",
                     color: "white",
                     width: "10%",
-                    height: "50px",
+                    height: "30px",
                     borderRadius: "20px",
                   }}
                 >
@@ -224,8 +233,9 @@ function Feed(props) {
                 <h4
                   style={{
                     fontWeight: "bold",
-                    fontSize: "1.5em",
+                    fontSize: "1.0em",
                     color: "#333",
+                    marginTop: 20,
                   }}
                 >
                   Your technical skills
@@ -263,19 +273,41 @@ function Feed(props) {
             )}
           </div>
         )}
-
-        <div className="get-referrals" onClick={handleFindClick}>
-          <button
-            style={{
-              backgroundColor: "#1a1a1a",
-              color: "white",
-              width: "30%",
-              height: "50px",
-              borderRadius: "20px",
+        {!viewReferrals && (
+          <div
+            className="get-referrals"
+            onClick={(e) => {
+              setLoading(true);
+              handleFindClick(e);
             }}
           >
-            Connect with professionals of similar interests
-          </button>
+            <button
+              style={{
+                backgroundColor: "#1a1a1a",
+                color: "white",
+                width: "30%",
+                height: "50px",
+                borderRadius: "20px",
+                display: viewReferrals ? "hidden" : "block",
+              }}
+            >
+              Connect with professionals of similar interests
+            </button>
+          </div>
+        )}
+        <div>
+          <div
+            style={{
+              marginTop: 20,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+            }}
+          >
+            {loading && <ThreeDots stroke="#1a1a1a" fill="#1a1a1a" />}
+          </div>
+          {viewReferrals && <Results />}
         </div>
       </div>
 
@@ -318,6 +350,7 @@ const AskForResume = ({
         console.log("response", response);
         // Update the state with the extracted PDF text
         const { data } = response;
+        setLoading(true);
         processExtractedText(data)
           .then((result) => {
             console.log("result", result);
@@ -347,47 +380,46 @@ const AskForResume = ({
       });
   };
 
-  //   const handleSubmit = (e) => {
-  //     e.preventDefault();
-  //     setLoading(true);
-  //     const storageRef = db.storage().ref();
-  //     const fileRef = storageRef.child(file.name);
-  //     fileRef.put(file).then(() => {
-  //       console.log("Uploaded a file");
-  //       fileRef.getDownloadURL().then((url) => {
-  //         console.log("url", url);
-  //         db.collection("users")
-
-  //           .doc(userName)
-  //           .update({
-  //             resume: true,
-  //             resumeUrl: url,
-  //           })
-  //           .then(() => {
-  //             console.log("Document successfully updated!");
-  //             setLoading(false);
-  //             setLoadingResume(true);
-  //           })
-  //           .catch((error) => {
-  //             // The document probably doesn't exist.
-  //             console.error("Error updating document: ", error);
-  //           });
-  //       });
-  //     });
-  //   };
-
   return (
     <div className="modal">
       <div className="modal-content">
         <h3>Upload your resume</h3>
-        <form onSubmit={handleFormSubmit}>
-          <input type="file" onChange={handleFileChange} />
-          <button type="submit" className="modal-buttons">
-            Submit
-          </button>
-        </form>
-        {loading && <p>Uploading...</p>}
-        {fileUrl && <img src={fileUrl} alt="resume" />}
+
+        {loading ? (
+          <>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "column",
+              }}
+            >
+              <Bars stroke="#1a1a1a" fill="#1a1a1a" />
+              {loading && <p>Uploading...</p>}
+            </div>
+          </>
+        ) : (
+          <form onSubmit={handleFormSubmit}>
+            <>
+              <input type="file" onChange={handleFileChange} />
+
+              <button
+                type="submit"
+                className="modal-buttons"
+                style={{
+                  backgroundColor: "#1a1a1a",
+                  color: "white",
+                  width: "10%",
+                  height: "50px",
+                  borderRadius: "20px",
+                }}
+              >
+                Submit
+              </button>
+            </>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -422,6 +454,184 @@ const Footer = () => {
   return (
     <div className="footer">
       <p>© 2023 Tahmid Abdurafov Khan Tadi All Rights Reserved.</p>
+    </div>
+  );
+};
+
+const imageBaseStyle = {
+  borderRadius: "50%",
+  borderWidth: "10px",
+  border: "solid",
+  borderColor: "black",
+  height: "100px",
+  width: "100px",
+  cursor: "pointer",
+  transition: "transform 0.3s ease",
+};
+
+const ListComponent = ({ items }) => {
+  const [clicked, setClick] = useState(false);
+
+  const handleMouseEnter = (e) => {
+    e.target.style.transform = "scale(1.3)";
+  };
+
+  const handleMouseLeave = (e) => {
+    e.target.style.transform = "scale(1)";
+  };
+
+  const handleClick = () => {
+    setClick((clicked) => !clicked);
+  };
+
+  return clicked ? (
+    <div className="CompleteListDiv">
+      {items.map((item, index) => (
+        <div
+          key={index}
+          style={{
+            display: "flex",
+            justifyContent: "space-evenly",
+            width: "100%",
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-evenly",
+              alignItems: "center",
+              width: 300,
+              height: 300,
+              backgroundColor: "#3B383D",
+              color: "white",
+            }}
+          >
+            <img
+              src={item?.avatar_url}
+              style={imageBaseStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              onClick={handleClick}
+              alt=""
+            />
+            <div style={{ textAlign: "center", width: "200px" }}>
+              <div>{item.login}</div>
+              <div>{item.name}</div>
+              <div>{item.location}</div>
+              {item.company && (
+                <div style={{ fontWeight: "bold" }}>{item.company}</div>
+              )}
+            </div>
+          </div>
+          {index !== items.length - 1 && (
+            <img
+              src="/arrow-right-solid.svg"
+              alt=""
+              width={"150px"}
+              height={"50px"}
+              style={{
+                margin: "auto",
+                marginRight: "20px",
+                cursor: "pointer",
+                transition: "transform 0.3s ease",
+              }}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          marginTop: "20px",
+          alignItems: "center",
+        }}
+      >
+        <img
+          src={items[items.length - 1]?.avatar_url}
+          style={{ ...imageBaseStyle, marginRight: "20px" }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleClick}
+          alt=""
+        />
+        <div style={{ marginTop: 10 }}>
+          <div>{items[items.length - 1].login}</div>
+          <div>{items[items.length - 1].name}</div>
+          <div>{items[items.length - 1].location}</div>
+          {items[items.length - 1].company && (
+            <div className="SinglePersonCard">
+              Company: {items[items.length - 1].company}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+const Results = () => {
+  const item = JSON.parse(localStorage.getItem("data") || "{}");
+  const typedData = item.companypaths;
+
+  const navigate = useNavigate();
+  return (
+    <div style={{ marginBottom: 100 }}>
+      <div className="feed" style={{ marginBottom: 100 }}>
+        {typedData && typedData.length !== 0 ? (
+          <div>
+            <h4
+              style={{
+                fontSize: "14px",
+                fontWeight: "bold",
+                marginTop: 40,
+                textAlign: "center",
+              }}
+            >
+              A summary of your mutual connections
+            </h4>
+            <button
+              style={{
+                backgroundColor: "#1a1a1a",
+                color: "white",
+                width: "10%",
+                height: "50px",
+                borderRadius: "20px",
+              }}
+              onClick={() => navigate("/visualize")}
+            >
+              Visualize in graphs
+            </button>
+          </div>
+        ) : (
+          <h4>No referrals found in your circle!</h4>
+        )}
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          {typedData && typedData.length > 0 ? (
+            <span>Click user to see how you're connected!</span>
+          ) : (
+            <span>Get more followers.</span>
+          )}
+        </div>
+
+        {typedData?.map((list, index) => (
+          <div
+            style={{
+              display: "flex",
+              margin: "30px",
+              justifyContent: "center",
+            }}
+            key={index}
+          >
+            <ListComponent items={list} key={index}></ListComponent>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
