@@ -78,7 +78,6 @@ function Feed(props) {
   }, []);
 
   React.useEffect(() => {
-    // Grab userprofile, resume from Firebase
     if (userName === "") return;
     else
       db.collection("users")
@@ -87,22 +86,24 @@ function Feed(props) {
         .then((doc) => {
           if (doc.exists) {
             console.log("Document data:", doc.data());
-            console.log("doc data", doc.data().resume);
             setModalVisible(!doc.data().resume);
-            console.log("modalVisible", modalVisible);
-
-            // if (profile) {
-            //   setLoadingProfile(true);
-            // }
             setUserData(doc.data());
           } else {
-            // doc.data() will be undefined in this case
             console.log("No such document!");
             db.collection("users").doc(userName).set({
               resume: false,
               profile: false,
+              elevatorPitch: "",
+              skills: [],
             });
             setModalVisible(true);
+            setUserData({
+              resume: false,
+              profile: false,
+              elevatorPitch: "",
+              skills: [],
+            });
+
             console.log("modalVisible", modalVisible);
           }
         })
@@ -114,7 +115,6 @@ function Feed(props) {
   const handleElevatorChange = (e) => {
     const { name, value } = e.target;
 
-    // Update the ElevatorPitch field in userData
     setUserData((prevData) => ({
       ...prevData,
       [name]: value,
@@ -127,7 +127,6 @@ function Feed(props) {
 
   const handleFindClick = async (e) => {
     e.preventDefault();
-    //make api call to end point
     if (userName === "") {
       console.log("here");
       setError("User name left empty");
@@ -169,78 +168,90 @@ function Feed(props) {
         ) : (
           <h3>Welcome {userName}</h3>
         )}
+
+        {modalVisible && (
+          <AskForResume
+            userName={userName}
+            setUserData={setUserData}
+            setLoadingResume={setLoadingResume}
+            setModalVisible={setModalVisible}
+            setElevatorPitch={setElevatorPitch}
+          />
+        )}
         {userData && (
           <div>
-            {modalVisible && (
-              <AskForResume
-                userName={userName}
-                setLoadingResume={setLoadingResume}
-                setModalVisible={setModalVisible}
-                setElevatorPitch={setElevatorPitch}
-              />
-            )}
-
-            {userData?.elevatorPitch ? (
+            {userData?.elevatorPitch && (
               <>
-                <p>Elevator Pitch</p>
-                <textarea
-                  name="elevatorPitch"
-                  rows="4"
-                  cols="150"
-                  value={userData?.elevatorPitch}
-                  onChange={handleElevatorChange}
-                />
+                <h4
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "1.5em",
+                    color: "#333",
+                  }}
+                >
+                  Elevator Pitch
+                </h4>
+                <div>
+                  <textarea
+                    name="elevatorPitch"
+                    rows="4"
+                    cols="150"
+                    value={userData?.elevatorPitch}
+                    onChange={handleElevatorChange}
+                  />
+                </div>
                 <button
                   onClick={() => {
                     db.collection("users")
                       .doc(userName)
-                      .update({ ElevatorPitch: userData?.elevatorPitch });
+                      .update({ elevatorPitch: userData?.elevatorPitch });
+                  }}
+                  style={{
+                    backgroundColor: "#1a1a1a",
+                    color: "white",
+                    width: "10%",
+                    height: "50px",
+                    borderRadius: "20px",
                   }}
                 >
                   Update
                 </button>
               </>
-            ) : (
-              <>
-                <p>Elevator Pitch</p>
-                <textarea
-                  name="ElevatorPitch"
-                  rows="10"
-                  cols="30"
-                  value={userData?.ElevatorPitch}
-                  onChange={handleElevatorChange}
-                />
-                <button
-                  onClick={() => {
-                    db.collection("users")
-                      .doc(userName)
-                      .update({ ElevatorPitch: userData?.elevatorPitch });
-                  }}
-                >
-                  Submit
-                </button>
-              </>
             )}
+
             {userData?.skills?.length !== 0 && (
               <>
-                <p>Skills</p>
+                <h4
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "1.5em",
+                    color: "#333",
+                  }}
+                >
+                  Your technical skills
+                </h4>
+
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "space-around",
+                    justifyContent: "flex-start",
                     flexWrap: "wrap",
+                    margin: 20,
                   }}
                 >
                   {userData?.skills?.map((skill) => {
                     return (
                       <span
                         style={{
-                          paddding: 30,
+                          padding: 10,
+                          marginRight: 10,
+                          marginBottom: 10,
                           fontWeight: "bold",
                           borderRadius: 20,
                           borderWidth: 10,
                           borderColor: "black",
                           border: "solid",
+                          backgroundColor: "lightgrey",
                         }}
                       >
                         {skill}
@@ -254,7 +265,17 @@ function Feed(props) {
         )}
 
         <div className="get-referrals" onClick={handleFindClick}>
-          <button>Connect with professionals of similar interests</button>
+          <button
+            style={{
+              backgroundColor: "#1a1a1a",
+              color: "white",
+              width: "30%",
+              height: "50px",
+              borderRadius: "20px",
+            }}
+          >
+            Connect with professionals of similar interests
+          </button>
         </div>
       </div>
 
@@ -267,6 +288,7 @@ const AskForResume = ({
   userName,
   setLoadingResume,
   setModalVisible,
+  setUserData,
   setElevatorPitch,
 }) => {
   const [loading, setLoading] = React.useState(false);
@@ -307,6 +329,13 @@ const AskForResume = ({
               skills: skills,
               elevatorPitch: elevatorPitch,
             });
+            setUserData((prevData) => ({
+              ...prevData,
+              resume: true,
+              skills: skills,
+              elevatorPitch: elevatorPitch,
+            }));
+
             setModalVisible(false);
           })
           .catch((error) => {
@@ -365,13 +394,25 @@ const AskForResume = ({
 };
 
 const Navbar = () => {
+  let navigate = useNavigate();
+
+  const handleLogOut = () => {
+    localStorage.removeItem("TOKEN");
+
+    navigate("/");
+  };
+
   return (
     <div className="navbar">
       <div style={{ display: "flex" }}>
         <img src={Logo} alt="Logo" className="navbar-logo" />
       </div>
-      <div className="navbar-links">
-        <a href="#logout">Logout</a>
+      <div
+        className="navbar-links"
+        onClick={handleLogOut}
+        style={{ cursor: "pointer" }}
+      >
+        Logout
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import "./feed.css";
 import Logo from "../assets/logo.png";
 import Commit from "../assets/commit.gif";
 import { Link, useNavigate } from "react-router-dom";
+import GIF from "../assets/gif.gif";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -40,12 +41,13 @@ const Landing = () => {
         <div
           style={{
             display: "flex",
-            flexDirection: "row",
+            flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
             width: "50%",
           }}
         >
+          <img src={GIF} alt="Logo" style={{ width: "50%" }} />
           <button
             onClick={() => {
               setModalVisible(true);
