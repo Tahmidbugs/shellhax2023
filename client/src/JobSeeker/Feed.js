@@ -4,6 +4,7 @@ import Logo from "../assets/logo.png";
 
 import { db } from "../firebase.js";
 import { processExtractedText } from "./pdfExtract.js";
+import { useNavigate } from "react-router-dom";
 
 function Feed(props) {
   const [token, setToken] = React.useState(localStorage.getItem("TOKEN"));
@@ -12,6 +13,11 @@ function Feed(props) {
   const [loadingResume, setLoadingResume] = React.useState(false);
   const [loadingProfile, setLoadingProfile] = React.useState(false);
   const [modalVisible, setModalVisible] = React.useState(false);
+  const [elevatorPitch, setElevatorPitch] = React.useState("");
+  const [error, setError] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+
+  const navigate = useNavigate();
 
   console.log("userData", userData);
 
@@ -81,10 +87,10 @@ function Feed(props) {
         .then((doc) => {
           if (doc.exists) {
             console.log("Document data:", doc.data());
-            const { resume, profile } = doc.data();
-            // if (resume) {
-            //   setLoadingResume(true);
-            // }
+            console.log("doc data", doc.data().resume);
+            setModalVisible(!doc.data().resume);
+            console.log("modalVisible", modalVisible);
+
             // if (profile) {
             //   setLoadingProfile(true);
             // }
@@ -96,6 +102,8 @@ function Feed(props) {
               resume: false,
               profile: false,
             });
+            setModalVisible(true);
+            console.log("modalVisible", modalVisible);
           }
         })
         .catch((error) => {
@@ -117,6 +125,41 @@ function Feed(props) {
       .update({ elevatorPitch: userData?.elevatorPitch });
   };
 
+  const handleFindClick = async (e) => {
+    e.preventDefault();
+    //make api call to end point
+    if (userName === "") {
+      console.log("here");
+      setError("User name left empty");
+      setTimeout(() => {
+        setError("");
+      }, 2000);
+    } else {
+      setLoading(true);
+      await axios
+        .post("http://127.0.0.1:5000/api/" + userName, {
+          token: localStorage.getItem("TOKEN") || "",
+        })
+        .then((res) => {
+          if (localStorage.getItem("data")) {
+            // Remove the item from local storage
+            localStorage.removeItem("data");
+          }
+          localStorage.setItem("data", JSON.stringify(res.data));
+          setLoading(false);
+          navigate("/result");
+        })
+        .catch((err) => {
+          console.log(err);
+          setLoading(false);
+          setError("500 : Internal server Error");
+          setTimeout(() => {
+            setError("");
+          }, 2000);
+        });
+    }
+  };
+
   return (
     <div>
       <Navbar />
@@ -128,20 +171,16 @@ function Feed(props) {
         )}
         {userData && (
           <div>
-            {userData?.resume ? (
-              <p>Resume: Uploaded</p>
-            ) : (
-              <>
-                {!modalVisible && (
-                  <AskForResume
-                    userName={userName}
-                    setLoadingResume={setLoadingResume}
-                    setModalVisible={setModalVisible}
-                  />
-                )}
-              </>
+            {modalVisible && (
+              <AskForResume
+                userName={userName}
+                setLoadingResume={setLoadingResume}
+                setModalVisible={setModalVisible}
+                setElevatorPitch={setElevatorPitch}
+              />
             )}
-            {userData?.elevatorPitch !== "" ? (
+
+            {userData?.elevatorPitch ? (
               <>
                 <p>Elevator Pitch</p>
                 <textarea
@@ -214,7 +253,7 @@ function Feed(props) {
           </div>
         )}
 
-        <div className="get-referrals">
+        <div className="get-referrals" onClick={handleFindClick}>
           <button>Connect with professionals of similar interests</button>
         </div>
       </div>
@@ -224,11 +263,17 @@ function Feed(props) {
   );
 }
 
-const AskForResume = ({ userName, setLoadingResume, setModalVisible }) => {
+const AskForResume = ({
+  userName,
+  setLoadingResume,
+  setModalVisible,
+  setElevatorPitch,
+}) => {
   const [loading, setLoading] = React.useState(false);
   const [file, setFile] = React.useState(null);
   const [fileName, setFileName] = React.useState(null);
   const [fileUrl, setFileUrl] = React.useState(null);
+  console.log("Ask for Resume Ran");
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setFile(file);
@@ -256,11 +301,16 @@ const AskForResume = ({ userName, setLoadingResume, setModalVisible }) => {
             console.log("result", result);
             const skills = result.skills;
             const elevatorPitch = result.message;
-          })
-          .then(() => {
+            setElevatorPitch(elevatorPitch);
+            db.collection("users").doc(userName).update({
+              resume: true,
+              skills: skills,
+              elevatorPitch: elevatorPitch,
+            });
             setModalVisible(false);
-            setLoading(false);
-            setLoadingResume(true);
+          })
+          .catch((error) => {
+            console.error("Error extracting text from PDF:", error);
           });
       })
       .catch((error) => {
