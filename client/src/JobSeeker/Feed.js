@@ -114,7 +114,7 @@ function Feed(props) {
 
     db.collection("users")
       .doc(userName)
-      .update({ elevatorPitch: userData.elevatorPitch });
+      .update({ elevatorPitch: userData?.elevatorPitch });
   };
 
   return (
@@ -128,11 +128,11 @@ function Feed(props) {
         )}
         {userData && (
           <div>
-            {userData.resume ? (
+            {userData?.resume ? (
               <p>Resume: Uploaded</p>
             ) : (
               <>
-                {modalVisible && (
+                {!modalVisible && (
                   <AskForResume
                     userName={userName}
                     setLoadingResume={setLoadingResume}
@@ -141,21 +141,21 @@ function Feed(props) {
                 )}
               </>
             )}
-            {userData.elevatorPitch !== "" ? (
+            {userData?.elevatorPitch !== "" ? (
               <>
                 <p>Elevator Pitch</p>
                 <textarea
                   name="elevatorPitch"
                   rows="4"
                   cols="150"
-                  value={userData.elevatorPitch}
+                  value={userData?.elevatorPitch}
                   onChange={handleElevatorChange}
                 />
                 <button
                   onClick={() => {
                     db.collection("users")
                       .doc(userName)
-                      .update({ ElevatorPitch: userData.elevatorPitch });
+                      .update({ ElevatorPitch: userData?.elevatorPitch });
                   }}
                 >
                   Update
@@ -168,21 +168,21 @@ function Feed(props) {
                   name="ElevatorPitch"
                   rows="10"
                   cols="30"
-                  value={userData.ElevatorPitch}
+                  value={userData?.ElevatorPitch}
                   onChange={handleElevatorChange}
                 />
                 <button
                   onClick={() => {
                     db.collection("users")
                       .doc(userName)
-                      .update({ ElevatorPitch: userData.elevatorPitch });
+                      .update({ ElevatorPitch: userData?.elevatorPitch });
                   }}
                 >
                   Submit
                 </button>
               </>
             )}
-            {userData.skills.length !== 0 && (
+            {userData?.skills?.length !== 0 && (
               <>
                 <p>Skills</p>
                 <div
@@ -192,7 +192,7 @@ function Feed(props) {
                     flexWrap: "wrap",
                   }}
                 >
-                  {userData.skills.map((skill) => {
+                  {userData?.skills?.map((skill) => {
                     return (
                       <span
                         style={{
