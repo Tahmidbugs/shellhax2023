@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 // import dotenv from "dotenv";
 // dotenv.config({ path: "./client/.env" });
 
-const API_KEY = "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";
+const API_KEY = "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";
 
 function ensureJson(variable) {
   if (typeof variable === "string") {
