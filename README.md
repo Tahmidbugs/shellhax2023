@@ -1,8 +1,8 @@
-# shellhax2023
+# Backend
 
 ## Instructions
 1. Use ```git clone https://github.com/Tahmidbugs/shellhax2023.git .``` or click download zip to download the repository to your local system.
-2. After the code is downloaded into your local machine, move into the root folder and run ```.venv\Scripts\activate``` for Windows or ``` source .venv/bin/activate``` for macOS/Linux to activate the virtual environment.
+2. After the code is downloaded into your local machine, move into the server folder and run ```.venv\Scripts\activate``` for Windows or ``` source .venv/bin/activate``` for macOS/Linux to activate the virtual environment.
 3. Next, Run ```pip install -r requirements.txt``` to install all dependencies from the requirements.txt file.
 4. Finally, run the server in a debugging mode using ```flask --app flaskr run --debug```.
 
@@ -20,7 +20,8 @@ It's very easy to visualize that a graph data structure represents this scenario
 ## Building the graph
 We used a Breath First Search approach to build the graph from API calls. BFS is a very common graph traversal algorithm that uses a queue to iteratively process the neighboring nodes first. The structure of the graph we used is a Map data structure where the key for me was the username (string) and the value was an array of users' information encapsulated in a class Map<string, User[]>. We started by making the API call to the 1st endpoint to get the root user info and added it to the queue. Due to reasons talked about in the Endpoints paragraph, we made another API call to the 2nd endpoint to get the directly connected users' incomplete info. We then go over these users, making an API call to the 1st endpoint again for each user, and adding them to the queue. This finishes the 1st level and now the cycle will repeat for the next levels.
 
-![image](https://github.com/Tahmidbugs/shellhax2023/assets/87687164/f0370550-b6e9-4bf4-9ebd-14b899d53e60)
+
+![image](https://github.com/Tahmidbugs/shellhax2023/assets/87687164/5248d239-4956-489e-81be-fd1fe6de37b3)
 
 
 ## Building the paths leading to hired Users
@@ -42,3 +43,49 @@ We realized that we didn't need to serialize the path attribute for each User, w
 
 obj_dict = obj.dict.copy()
 del obj_dict['path']
+
+
+# Frontend
+
+# GitConnected-Frontend
+
+![WhatsApp Image 2023-09-17 at 10 56 06](https://github.com/Tahmidbugs/shellhax2023/assets/87687164/163a9190-c84f-42f0-8660-113454781431)
+
+## What does it do?
+This web application is your all-in-one place to get started with getting referrals. You will be surprised to find people so close to you who you can reach out
+to for referrals and be more likely to get one. We find a curated list of individuals whom you might have not thought of finding at a place where every developer is - Github.
+Not only do we connect, but we take you one step further by crafting personalized emails(to be made!) and elevator pitches using the state-of-the-art AI tool OpenAI Apu. Try it out!
+
+https://devpost.com/software/gitconnected?ref_content=my-projects-tab&ref_feature=my_projects
+
+
+## How it works?
+We have talked in depth about the entire implementation of how it does what it does in the backend part.
+
+
+## Tech Stack?
+We used <code>React.js</code> for the front end. The library that we used to build the visualization part is called <code>React Sigma</code>. 
+The entire code base is written in <code>Typescript + Javascript</code>. We use <code>Firebase</code> as well as <code>Flask web framework</code> for the backend. We also used <code>OpenAI</code> API.
+
+## Authentication
+We used Github Oauth for authentication. This served two purposes.
+1. Made authenticated requests to GitHub API.
+2. Provided an access token from each user that we could use to make API calls. Thus, preventing a single source IP call from exceeding the API limit.
+
+
+
+## Instructions
+
+1. After the code is downloaded into your local machine from the previous clone of the repo, move to the client folder and run ``` npm install ``` in your CMP/terminal.
+2. After the installation is complete, run the command ``` npm run ```.
+Note: You might need to install Node on your local machine if it's already not installed.
+
+## Problems we ran into
+
+Doing this project was very straightforward in terms of the overall project layout. However, the biggest problem we ran into was with the GitHub API. While I was testing the Python script to create the graph, we ran into this issue. 
+
+<code>{"message":"API rate limit exceeded for 49.37.45.101. (But here's the good news: Authenticated requests get a higher rate limit. Check out the documentation for more details.)","documentation_url":"https://docs.github.com/rest/overview/resources-in-the-rest-api#rate-limiting"}</code> 
+
+Looking into it, I found out that the GitHub API has a limit of 60 API calls/hr for unauthorized requests. This was a big problem for us because we had at least 120 API calls per user. Searching through GitHub's documentation on Rate-Limits, I found a perfect solution for my problem: Github Oauth.
+This provided us with an access token that we could use to make API calls for each individual user. This made the API calls authorized, increasing the cap from 60 to 5000 API calls/hr per user. This also helped us prevent a single source IP from exceeding the API limit as seen in the error message, because now we were making calls on behalf of the client and thus making it IP agnostic.
+
