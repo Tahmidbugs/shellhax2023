@@ -17,7 +17,7 @@ const Feed = ({ setModalVisible, modalVisible, setJobDetails }) => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        console.log("Fetching jobs from db", db);
+        console.log("Fetching jobs from d", db);
         const jobCollection = await db
           .collection("recruiters")
           .doc(recruiterId)
